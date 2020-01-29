@@ -1,0 +1,22 @@
+{
+  "name": "cs-engine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MichaelvMorrison/CS-Engine.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MichaelvMorrison/CS-Engine/issues"
+  },
+  "homepage": "https://github.com/MichaelvMorrison/CS-Engine#readme",
+  "dependencies": {
+    "three": "^0.112.1"
+  }
+}
