@@ -26,34 +26,27 @@ function init() {
   renderer.outputEncoding = THREE.sRGBEncoding;
   document.body.appendChild( renderer.domElement );
 
-  // Check for float-RT support
-  // TODO (abelnation): figure out fall-back for float textures
-
   if ( ! renderer.extensions.get( 'OES_texture_float' ) ) {
-
     alert( 'OES_texture_float not supported' );
     throw 'missing webgl extension';
-
   }
 
   if ( ! renderer.extensions.get( 'OES_texture_float_linear' ) ) {
-
     alert( 'OES_texture_float_linear not supported' );
     throw 'missing webgl extension';
-
   }
 
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 1000 );
-  camera.position.set( 0, 20, 35 );
+  camera.position.set(0, 200, 200);
 
   var controls = new OrbitControls( camera, renderer.domElement );
-  controls.minDistance = 20;
-  controls.maxDistance = 50;
+  controls.minDistance = 0;
+  controls.maxDistance = 1000;
   controls.maxPolarAngle = Math.PI / 2;
 
   scene.add( new THREE.AmbientLight( 0x222222 ) );
 
-  var axesHelper = new THREE.AxesHelper( 100 );
+  var axesHelper = new THREE.AxesHelper( 20 );
   scene.add( axesHelper );
 
   var geometry = new THREE.PlaneBufferGeometry( 20, 20);

@@ -9,9 +9,38 @@
     <script src="https://code.jquery.com/jquery-3.4.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/p5@0.10.2/lib/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+    <script src="https://unpkg.com/better-file-input"></script>
   </head>
   <body>
-    <script type="module" src="js/js.js">
-		</script>
+    <!-- <script type="module" src="js/js.js">
+		</script> -->
+    <div class="container-fluid mt-4">
+      <div class="row">
+        <div class="col-md-8 m-auto">
+          <div class="card drop-shadow">
+            <div class="card-body">
+              <h2 class="card-title text-center">CS Engine</h2>
+              <h6 class="card-subtitle mb-2 text-muted text-center mb-3">File Sumbission</h6>
+              <form>
+                <div class="custom-file mb-4">
+                  <input id="iesInput" autocomplete=off type="file" accept=".ies" class="custom-file-input" name="ies" onchange='readFile(event)'/>
+                  <label class="custom-file-label" for="ies">Upload IES</label>
+                </div>
+                <div class="custom-file mb-4">
+                  <input id="spdInput" autocomplete=off type="file" accept=".csv" class="custom-file-input" name="spd" onchange='readFile(event)'/>
+                  <label class="custom-file-label" for="spd">Upload SPD</label>
+                </div>
+              </form>
+              <div class="w-100 text-center">
+                <button id="submit" class="btn btn-lrc disabled">Submit</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <script src="js/js2.js"></script>
   </body>
 </html>
