@@ -84,12 +84,11 @@ function iesParse(){
   raw = raw.slice(ies.numVerticalAngles);
   ies.horizontalAngles = raw.slice(0,ies.numHorizontalAngles);
   raw = raw.slice(ies.numHorizontalAngles);
-  for (var i = 0; i < ies.numHorizontalAngles; i++){
+  for (i = 0; i < ies.numHorizontalAngles; i++){
     ies.angles[i] = raw.slice(0,ies.numVerticalAngles);
     raw = raw.slice(ies.numVerticalAngles);
   }
   createCandela();
-  console.log(ies.)
 }
 
 function readFile(event) {
