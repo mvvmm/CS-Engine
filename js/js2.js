@@ -2,31 +2,151 @@ var ies = {
   keys: {},
   angles: []
 };
-var spd = {};
 
-function createCandela(){
-  var data, options;
-  data = {
+var spd = {
+  wavelengths: [],
+  powers: []
+};
+
+function buildContent(){
+  createSPD();
+  createCandela();
+}
+
+function buildHTML(){
+  $('body').html('');
+  var str = '';
+  str += '<div class="container-fluid">';
+  str += '  <div class="row mt-4">';
+  str += '    <div class="col">';
+  str += '      <h1 class="text-center">CS Engine</h1>';
+  str += '        <div class="mx-auto text-center canvas-container">';
+  str += '          <canvas id="spd"></canvas>';
+  str += '          <canvas id="candela"></canvas>';
+  str += '        </div>';
+  str += '    </div>';
+  str += '  </div>';
+  str += '  <div class="row">';
+  str += '    <div class="col-md-3">';
+  str += '      <h2 class="text-center">Inputs</h2>';
+  str += '    </div>';
+  str += '    <div class="col-md-9">';
+  str += '    </div>';
+  str += '  </div>';
+  str += '</div>';
+  $('body').html(str).promise().done(buildContent());
+}
+
+function createSPD(){
+  var ctx = document.getElementById("spd").getContext('2d');
+  var data = {
     labels: [],
     datasets: [{
-      label: 'label',
+      label: 'Normalized SPD',
+      borderColor: '#000',
+      pointBorderColor: '#000',
+      pointBackgroundColor: '#000',
+      pointHoverBackgroundColor: '#000',
+      pointHoverBorderColor: '#000',
       fill: false,
+      borderWidth: 4,
+      showLine: true,
       data: []
     }]
   };
-  options = {
+  var options = {
+  		responsive: true,
+  		spanGaps: true,
+  		legend: {
+  			display: false,
+  		},
+  		scales: {
+  			yAxes: [{
+  				ticks: {
+  					min: 0,
+  					max: 1
+  				},
+  				scaleLabel: {
+  					display: true,
+  					labelString: 'Relative Spectral Power (%)',
+  					padding: 0,
+  				}
+  			}],
+  			xAxes: [{
+  				ticks: {
+  					min: 350,
+  					max: 750,
+  				},
+  				scaleLabel: {
+  					display: true,
+  					labelString: 'Wavelength (nm)',
+  					padding: 0,
+  				}
+  			}]
+  		},
+  		elements: {
+  			point: {
+  				radius: 0,
+  				hitRadius: 10,
+  			}
+  		}
+  	}
+  for (var i = 0; i < spd.wavelengths.length; i++){
+    var point = {
+      x: spd.wavelengths[i],
+      y: spd.powers[i]
+    };
+    data.datasets[0].data.push(point);
+  }
+  var spdChart = new Chart(ctx, {
+    type: 'scatter',
+    data: data,
+    options: options
+  });
+}
+
+function createCandela(){
+  var ctx = document.getElementById("candela").getContext('2d');
+  var data = {
+    labels: [],
+    datasets: [{
+      borderColor: '#000',
+      pointBorderColor: '#000',
+      pointBackgroundColor: '#000',
+      pointHoverBackgroundColor: '#000',
+      pointHoverBorderColor: '#000',
+      fill: false,
+      borderWidth: 4,
+      showLine: true,
+      data: []
+    }]
+  };
+  var options = {
+    responsive: true,
+    spanGaps: true,
     scale: {
       gridLines: {
         circular: true
       }
     },
-    title: {
-      display: true,
-      text: 'does this work'
+    legend: {
+      display: false,
+    },
+    elements: {
+      point: {
+        radius: 0,
+        hitRadius: 10,
+      }
     }
   };
-  var ctx = document.getElementById('candela').getContext('2d');
-  var candela = new Chart(ctx,{
+  for (var i = 0; i < ies.verticalAngles.length; i++){
+    var point = {
+      x: ies.verticalAngles[i],
+      y: ies.angles[0][i]
+    };
+    data.datasets[0].data.push(point);
+  }
+  var candelaChart = new Chart(ctx,{
     type: 'radar',
     data: data,
     options: options
@@ -88,7 +208,23 @@ function iesParse(){
     ies.angles[i] = raw.slice(0,ies.numVerticalAngles);
     raw = raw.slice(ies.numVerticalAngles);
   }
-  createCandela();
+  delete ies.raw;
+  console.log(ies);
+  spdParse();
+}
+
+function spdParse(){
+  var raw = spd.raw;
+  raw = raw.replace(/ +?/g, '').replace(/\t/g,'').replace(/\r/g,'');
+  raw = raw.split('\n');
+  for(var i = 0; i < raw.length; i++){
+    var split = raw[i].split(',');
+    if (split[0] >= 380 && split[0] <= 730){
+      spd.wavelengths.push(split[0]);
+      spd.powers.push(split[1]);
+    }
+  }
+  buildHTML();
 }
 
 function readFile(event) {
@@ -123,7 +259,6 @@ function handleFileInput(){
   $('#submit').on('click',function(){
     if(!$('#submit').hasClass('disabled')){
       iesParse();
-      //console.log(spd);
     }
   });
 }
