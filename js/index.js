@@ -110,14 +110,10 @@ function createCandela(){
   var data = {
     labels: [],
     datasets: [{
-      borderColor: '#000',
-      pointBorderColor: '#000',
-      pointBackgroundColor: '#000',
-      pointHoverBackgroundColor: '#000',
-      pointHoverBorderColor: '#000',
-      fill: false,
-      borderWidth: 4,
-      showLine: true,
+      borderColor: "rgb(0,0,255,1)",
+      backgroundColor: "rgb(0,0,255,0.5)",
+      data: []
+    },{
       data: []
     }]
   };
@@ -126,8 +122,8 @@ function createCandela(){
     spanGaps: true,
     scale: {
       gridLines: {
-        circular: true
-      }
+        circular: true,
+      },
     },
     legend: {
       display: false,
@@ -139,13 +135,85 @@ function createCandela(){
       }
     }
   };
-  for (var i = 0; i < ies.verticalAngles.length; i++){
-    var point = {
-      x: ies.verticalAngles[i],
-      y: ies.angles[0][i]
-    };
-    data.datasets[0].data.push(point);
+
+  var va = ies.verticalAngles;
+  var lastVA = va[va.length-1];
+
+  if (lastVA == 90){
+
+    var index = 0;
+    var stepSize = lastVA - va[va.length-2];
+    for (var label = 180; label > lastVA; label=label-stepSize){
+      console.log(label);
+      if (label % 10 == 0){
+        data.labels.push(label);
+        data.datasets[0].data[index] = 0;
+      }else{
+        data.labels.push('');
+        data.datasets[0].data[index] = 0;
+      }
+      index++
+    }
+    for (var i = va.length-1; i > 0; i--){
+      console.log(va[i]);
+      if (va[i] % 10 == 0){
+        data.labels.push(va[i]);
+        data.datasets[0].data[index] = ies.angles[0][i];
+      }else{
+        data.labels.push('');
+        data.datasets[0].data[index] = ies.angles[0][i];
+      }
+      index++
+    }
+    for (i = 0; i < va.length; i++){
+      console.log(va[i]);
+      if (va[i] % 10 == 0){
+        data.labels.push(va[i]);
+        data.datasets[0].data[index] = ies.angles[0][i];
+      }else{
+        data.labels.push('');
+        data.datasets[0].data[index] = ies.angles[0][i];
+      }
+      index++;
+    }
+    for (label = Number(lastVA) + stepSize; label < 180; label=label+stepSize){
+      console.log(label);
+      if (label % 10 == 0){
+        data.labels.push(label);
+        data.datasets[0].data[index] = 0;
+      }else{
+        data.labels.push('');
+        data.datasets[0].data[index] = 0;
+      }
+      index++;
+    }
+
+  }else if (lastVA == 180){
+
+    var index = 0;
+    for (var i = va.length-1; i > 0; i--){
+      if (va[i] % 10 == 0){
+        data.labels.push(va[i]);
+        data.datasets[0].data[index] = ies.angles[0][i];
+      }else{
+        data.labels.push('');
+        data.datasets[0].data[index] = ies.angles[0][i];
+      }
+      index++;
+    }
+    for (i = 0; i < va.length-1; i++){
+      if (va[i] % 10 == 0){
+        data.labels.push(va[i]);
+        data.datasets[0].data[index] = ies.angles[0][i];
+      }else{
+        data.labels.push('');
+        data.datasets[0].data[index] = ies.angles[0][i];
+      }
+      index++;
+    }
+
   }
+
   var candelaChart = new Chart(ctx,{
     type: 'radar',
     data: data,
@@ -199,6 +267,7 @@ function iesParse(){
   ies.futureUse = line[1];
   ies.inputWatts = line[2];
   raw = raw.replace(/\r\n/g,' ');
+  raw = raw.replace(/  +/g, ' ');
   raw = raw.split(' ');
   ies.verticalAngles = raw.slice(0,ies.numVerticalAngles);
   raw = raw.slice(ies.numVerticalAngles);
