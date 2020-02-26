@@ -90,7 +90,7 @@ function createSPD(){
   				hitRadius: 10,
   			}
   		}
-  	}
+  	};
   for (var i = 0; i < spd.wavelengths.length; i++){
     var point = {
       x: spd.wavelengths[i],
@@ -106,6 +106,26 @@ function createSPD(){
 }
 
 function createCandela(){
+  function addPoint(angle,index,set,i){
+    if (angle % 10 == 0){
+      data.labels.push(va[i]);
+      data.datasets[0].data[index] = (ies.angles[set][i] * ies.multiplier).toFixed(2);
+    }else{
+      data.labels.push('');
+      data.datasets[0].data[index] = (ies.angles[set][i] * ies.multiplier).toFixed(2);
+    }
+  }
+
+  function addBlank(label,index){
+    if (label % 10 == 0){
+      data.labels.push(label);
+      data.datasets[0].data[index] = 0;
+    }else{
+      data.labels.push('');
+      data.datasets[0].data[index] = 0;
+    }
+  }
+
   var ctx = document.getElementById("candela").getContext('2d');
   var data = {
     labels: [],
@@ -136,82 +156,83 @@ function createCandela(){
     }
   };
 
+  var ha = ies.horizontalAngles;
+  var firstHA = ha[0];
+  var lastHA = ha[ha.length-1];
+
   var va = ies.verticalAngles;
+  var firstVA = va[0];
   var lastVA = va[va.length-1];
 
-  if (lastVA == 90){
+  var stepSize = lastVA - va[va.length-2];
+  var index, i, label, set;
+  if (firstVA == 0){
 
-    var index = 0;
-    var stepSize = lastVA - va[va.length-2];
-    for (var label = 180; label > lastVA; label=label-stepSize){
-      console.log(label);
-      if (label % 10 == 0){
-        data.labels.push(label);
-        data.datasets[0].data[index] = 0;
-      }else{
-        data.labels.push('');
-        data.datasets[0].data[index] = 0;
+    // 0 -> 90
+    if (lastVA == 90){
+
+      index = 0;
+      set = 0;
+      for (label = 180; label > lastVA; label=label-stepSize){
+        addBlank(label,index);
+        index++;
       }
-      index++
-    }
-    for (var i = va.length-1; i > 0; i--){
-      console.log(va[i]);
-      if (va[i] % 10 == 0){
-        data.labels.push(va[i]);
-        data.datasets[0].data[index] = ies.angles[0][i];
-      }else{
-        data.labels.push('');
-        data.datasets[0].data[index] = ies.angles[0][i];
+      for (i = va.length-1; i > 0; i--){
+        addPoint(va[i],index,set,i);
+        index++;
       }
-      index++
-    }
-    for (i = 0; i < va.length; i++){
-      console.log(va[i]);
-      if (va[i] % 10 == 0){
-        data.labels.push(va[i]);
-        data.datasets[0].data[index] = ies.angles[0][i];
-      }else{
-        data.labels.push('');
-        data.datasets[0].data[index] = ies.angles[0][i];
+      if (lastHA == 360){
+        set = (ha.length + 1)/2;
       }
-      index++;
-    }
-    for (label = Number(lastVA) + stepSize; label < 180; label=label+stepSize){
-      console.log(label);
-      if (label % 10 == 0){
-        data.labels.push(label);
-        data.datasets[0].data[index] = 0;
-      }else{
-        data.labels.push('');
-        data.datasets[0].data[index] = 0;
+      for (i = 0; i < va.length; i++){
+        addPoint(va[i],index,set,i);
+        index++;
       }
-      index++;
+      for (label = Number(lastVA) + stepSize; label < 180; label=label+stepSize){
+        addBlank(label,index);
+        index++;
+      }
+
+    //0 -> 180
+    }else if (lastVA == 180){
+      index = 0;
+      set = 0;
+      for (i = va.length-1; i > 0; i--){
+        addPoint(va[i],index,set,i);
+        index++;
+      }
+      if (lastHA == 360){
+        set = (ha.length + 1)/2;
+      }
+      for (i = 0; i < va.length-1; i++){
+        addPoint(va[i],index,set,i);
+        index++;
+      }
     }
 
-  }else if (lastVA == 180){
-
-    var index = 0;
-    for (var i = va.length-1; i > 0; i--){
-      if (va[i] % 10 == 0){
-        data.labels.push(va[i]);
-        data.datasets[0].data[index] = ies.angles[0][i];
-      }else{
-        data.labels.push('');
-        data.datasets[0].data[index] = ies.angles[0][i];
-      }
+  // 90 -> 180
+  }else if (firstVA == 90){
+    index = 0;
+    set = 0;
+    for(i = va.length-1; i > 0; i--){
+      addPoint(va[i],index,set,i);
       index++;
     }
-    for (i = 0; i < va.length-1; i++){
-      if (va[i] % 10 == 0){
-        data.labels.push(va[i]);
-        data.datasets[0].data[index] = ies.angles[0][i];
-      }else{
-        data.labels.push('');
-        data.datasets[0].data[index] = ies.angles[0][i];
-      }
+    for (label = 90; label > 0; label = label - stepSize){
+      addBlank(label,index);
       index++;
     }
-
+    for (label = 0; label < 90; label = label + stepSize){
+      addBlank(label,index);
+      index++;
+    }
+    if (lastHA == 360){
+      set = (ha.length + 1)/2;
+    }
+    for(i = 0; i < va.length-1; i++){
+      addPoint(va[i],index,set,i);
+      index++;
+    }
   }
 
   var candelaChart = new Chart(ctx,{
@@ -278,6 +299,18 @@ function iesParse(){
     raw = raw.slice(ies.numVerticalAngles);
   }
   delete ies.raw;
+
+  // Make sure photometric type C
+  if (ies.photometricType != 1){
+    if(ies.photometricType == 2){
+      alert('Your fixture is photometric type B. You must use type C.');
+    }
+    if (ies.photometricType == 3){
+      alert('Your fixture is photometric type A. You must use type C.');
+    }
+    return;
+  }
+
   console.log(ies);
   spdParse();
 }
