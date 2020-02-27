@@ -106,6 +106,47 @@ function createSPD(){
 }
 
 function createCandela(){
+  function getVAIndex(){
+    var angles = ies.angles[0];
+    var max = parseFloat(angles[0]);
+    var maxIndex = 0;
+
+    for (var i = 1; i < angles.length; i++) {
+      if (parseFloat(angles[i]) > max) {
+        maxIndex = i;
+        max = angles[i];
+      }
+    }
+
+    return maxIndex;
+  }
+
+  function findIndexOf(angle){
+    var ten, tenIndexes = [], diff, indexDiff;
+    ten =  Math.round(angle / 10) * 10;
+    tenIndexes[0] = (data.labels).indexOf(ten.toString());
+    if (ten != 0 && ten != 180){
+      tenIndexes[1] = (data.labels).indexOf(ten.toString(),tenIndexes[0] + 1);
+    }else{
+      return tenIndexes;
+    }
+    var indexes = tenIndexes;
+    if (angle < ten){
+      diff = ten - angle;
+      indexDiff = diff/stepSize;
+      indexes[0] = indexes[0] + indexDiff;
+      indexes[1] = indexes[1] - indexDiff;
+    }else if (angle > ten){
+      diff = angle - ten;
+      indexDiff = diff/stepSize;
+      indexes[0] = indexes[0] - indexDiff;
+      indexes[1] = indexes[1] + indexDiff;
+    }else{
+      return tenIndexes;
+    }
+    return indexes;
+  }
+
   function addPoint(angle,index,set,i){
     if (angle % 10 == 0){
       data.labels.push(va[i]);
@@ -118,7 +159,7 @@ function createCandela(){
 
   function addBlank(label,index){
     if (label % 10 == 0){
-      data.labels.push(label);
+      data.labels.push(label.toString());
       data.datasets[0].data[index] = 0;
     }else{
       data.labels.push('');
@@ -131,9 +172,11 @@ function createCandela(){
     labels: [],
     datasets: [{
       borderColor: "rgb(0,0,255,1)",
-      backgroundColor: "rgb(0,0,255,0.5)",
+      backgroundColor: "rgb(0,0,255,0)",
       data: []
     },{
+      borderColor: "rgb(255,0,0,1)",
+      backgroundColor: "rgb(255,0,0,0)",
       data: []
     }]
   };
@@ -142,16 +185,19 @@ function createCandela(){
     spanGaps: true,
     scale: {
       gridLines: {
-        circular: true,
+        circular: true
       },
+      angleLines: {
+        display: false,
+      }
     },
     legend: {
-      display: false,
+      display: false
     },
     elements: {
       point: {
         radius: 0,
-        hitRadius: 10,
+        hitRadius: 10
       }
     }
   };
@@ -165,10 +211,10 @@ function createCandela(){
   var lastVA = va[va.length-1];
 
   var stepSize = lastVA - va[va.length-2];
-  var index, i, label, set;
+  var index, i, label, set, vaIndex;
   if (firstVA == 0){
 
-    // 0 -> 90
+    // VA: 0 -> 90
     if (lastVA == 90){
 
       index = 0;
@@ -193,7 +239,7 @@ function createCandela(){
         index++;
       }
 
-    //0 -> 180
+    // VA: 0 -> 180
     }else if (lastVA == 180){
       index = 0;
       set = 0;
@@ -210,7 +256,7 @@ function createCandela(){
       }
     }
 
-  // 90 -> 180
+  // VA: 90 -> 180
   }else if (firstVA == 90){
     index = 0;
     set = 0;
@@ -234,6 +280,54 @@ function createCandela(){
       index++;
     }
   }
+
+  if (firstHA == 0){
+
+    // HA: 0 -> 0
+    if (lastHA == 0){
+      vaIndex = 0;
+      index = 0;
+      set = 0;
+      for (i = 0; i < data.labels.length; i++){
+        data.datasets[1].data[index] = va[set][vaIndex];
+        index++;
+      }
+
+    // HA: 0 -> 90
+    }else if (lastHA == 90){
+      vaIndex = getVAIndex();
+      set = 0;
+      for (i = 0; i < ha.length; i++){
+        indexes = findIndexOf(ha[i]);
+        data.datasets[1].data[indexes[0]] = (ies.angles[set][vaIndex]) * ies.multiplier;
+        if(indexes.length > 1){
+          data.datasets[1].data[indexes[1]] = (ies.angles[set][vaIndex]) * ies.multiplier;
+        }
+        set++;
+      }
+      set = 0;
+      for (i = 0; i < ha.length; i++){
+        indexes = findIndexOf(parseFloat(ha[i]) + 90);
+        data.datasets[1].data[indexes[0]] = (ies.angles[set][vaIndex]) * ies.multiplier;
+        if(indexes.length > 1){
+          data.datasets[1].data[indexes[1]] = (ies.angles[set][vaIndex]) * ies.multiplier;
+        }
+        set++;
+      }
+
+    // HA: 0 -> 180
+    }else if (lastHA == 180){
+
+    // HA: 0-> 360
+    }else if (lastHA == 360){
+
+    }
+
+  // HA: 90 -> 270
+  }else if (firstHA == 90){
+
+  }
+
 
   var candelaChart = new Chart(ctx,{
     type: 'radar',
