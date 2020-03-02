@@ -181,7 +181,7 @@ function createCandela(){
         circular: true
       },
       angleLines: {
-        display: false,
+        display: false
       }
     },
     legend: {
