@@ -26,13 +26,6 @@ function buildHTML(){
   str += '        </div>';
   str += '    </div>';
   str += '  </div>';
-  str += '  <div class="row">';
-  str += '    <div class="col-md-3">';
-  str += '      <h2 class="text-center">Inputs</h2>';
-  str += '    </div>';
-  str += '    <div class="col-md-9">';
-  str += '    </div>';
-  str += '  </div>';
   str += '</div>';
   $('body').html(str).promise().done(buildContent());
 }
@@ -292,6 +285,7 @@ function createCandela(){
         data.datasets[1].data[index] = va[set][vaIndex];
         index++;
       }
+      alert('im not sure this is correct');
 
     // HA: 0 -> 90
     }else if (lastHA == 90){
@@ -299,33 +293,65 @@ function createCandela(){
       set = 0;
       for (i = 0; i < ha.length; i++){
         indexes = findIndexOf(ha[i]);
-        data.datasets[1].data[indexes[0]] = (ies.angles[set][vaIndex]) * ies.multiplier;
+        data.datasets[1].data[indexes[0]] = ((ies.angles[set][vaIndex]) * ies.multiplier).toFixed(2);
         if(indexes.length > 1){
-          data.datasets[1].data[indexes[1]] = (ies.angles[set][vaIndex]) * ies.multiplier;
+          data.datasets[1].data[indexes[1]] = ((ies.angles[set][vaIndex]) * ies.multiplier).toFixed(2);
         }
         set++;
       }
       set = 0;
       for (i = 0; i < ha.length; i++){
         indexes = findIndexOf(parseFloat(ha[i]) + 90);
-        data.datasets[1].data[indexes[0]] = (ies.angles[set][vaIndex]) * ies.multiplier;
+        data.datasets[1].data[indexes[0]] = ((ies.angles[set][vaIndex]) * ies.multiplier).toFixed(2);
         if(indexes.length > 1){
-          data.datasets[1].data[indexes[1]] = (ies.angles[set][vaIndex]) * ies.multiplier;
+          data.datasets[1].data[indexes[1]] = ((ies.angles[set][vaIndex]) * ies.multiplier).toFixed(2);
         }
         set++;
       }
 
     // HA: 0 -> 180
     }else if (lastHA == 180){
-
+      alert('I have not coded this yet');
     // HA: 0-> 360
     }else if (lastHA == 360){
+      var first90 = []
+      vaIndex = getVAIndex();
+      set = 0;
+      for (i = 0; i < ha.length; i++){
+        var adjustedHA;
+        if (parseFloat(ha[i]) > 180){
+          if (ha[i] < 270){
+            adjustedHA = parseFloat(ha[i]) - 90;
+            index = findIndexOf(adjustedHA)[1];
+          }else{
+            adjustedHA = 450 - parseFloat(ha[i]);
+            index = findIndexOf(adjustedHA)[0];
+          }
+          data.datasets[1].data[index] = ((ies.angles[set][vaIndex]) * ies.multiplier).toFixed(2);
+          set++;
+        }
+        else{
+          if (ha[i] < 90){
+            adjustedHA = 90 - parseFloat(ha[i]);
+            index = findIndexOf(adjustedHA)[0];
+          }else{
+            adjustedHA = parseFloat(ha[i]) - 90;
+            index = findIndexOf(adjustedHA)[1];
+            if (ha[i] == 90){
+              index = findIndexOf(adjustedHA)[0];
 
+            }
+          }
+          data.datasets[1].data[index] = ((ies.angles[set][vaIndex]) * ies.multiplier).toFixed(2);
+          set++;
+        }
+      }
+      alert('I have not coded this yet');
     }
 
   // HA: 90 -> 270
   }else if (firstHA == 90){
-
+    alert('I have not coded this yet');
   }
 
 
