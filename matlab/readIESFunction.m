@@ -1,7 +1,6 @@
 
 function [I,thetas,phis] = readIESFunction(pathFileName)
 
-pathFileName = 'cosineDownLight.ies';
 fid = fopen(pathFileName,'r');
 tiltLine = 0;
 fileLine = '0';

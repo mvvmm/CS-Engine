@@ -1,6 +1,86 @@
+function average_2d(arr){
+  var result = [];
+  for (var i in arr[0]){
+    var sum = 0;
+    for (var j in arr){
+      sum += parseFloat(arr[j][i]);
+    }
+    result.push(sum/arr.length);
+  }
+  return result;
+}
+
+function findx1index(x, array){
+	var result = [];
+	array.reverse();
+	//var rindex = array.findIndex(function(a) {return lessthanequal(a, x);});
+	var rindex = -1;
+	for(var i = 0;i < array.length;i++){
+		if(array[i] <= x){
+			rindex = i;
+			break;
+		}
+	}
+	result = array.length - (rindex + 1);
+	array.reverse();
+	return result;
+}
+
+function lerp(x, x1, x2, y1, y2){
+	var result = [];
+	result = y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+	return result;
+}
+
+function linearInterp(xarray, yarray, x, value){
+	var result;
+	var xmax = Math.max.apply(null, xarray);
+	var xmin = Math.min.apply(null, xarray);
+	if(x < xmin){
+		result = value;
+	}else if(x > xmax){
+		result = value;
+	}else if(x == xmax){
+		var yendindex = (yarray.length) - 1;
+		result = yarray[yendindex];
+	}else{
+		var x1index = findx1index(x, xarray);
+		var x1 = xarray[x1index];
+		var x2 = xarray[x1index + 1];
+		var y1 = yarray[x1index];
+		var y2 = yarray[x1index + 1];
+
+		result = lerp(x, x1, x2, y1, y2);
+	}
+	return result;
+}
+
+function interp1(xarray, yarray, array, value){
+	var result = [];
+	if(Array.isArray(array)){
+		for(var i = 0;i < array.length;i++){
+			var x = array[i];
+			result[i] = linearInterp(xarray, yarray, x, value);
+		}
+	}else{
+		var x = array;
+		return linearInterp(xarray, yarray, x, value);
+	}
+	return result;
+}
+
+
+var length = 6.60, width = 4.84, height = 2.795;
+var reflectance = {
+  walls: 0.50,
+  ceiling: 0.80,
+  floor: 0.20
+};
+var fixtureEfficiency = 1.0;
+
 var ies = {
   keys: {},
-  angles: []
+  intensities: []
 };
 
 var spd = {
@@ -9,6 +89,7 @@ var spd = {
 };
 
 function buildContent(){
+  calculateCU();
   createSPD();
   createCandela();
 }
@@ -28,6 +109,128 @@ function buildHTML(){
   str += '  </div>';
   str += '</div>';
   $('body').html(str).promise().done(buildContent());
+}
+
+function calculateCU(){
+
+  function findUpIndeces(arr){
+    var result = [];
+    for(var i in arr){
+      if (arr[i] > 90 && arr[i] < 180){
+        result.push(i);
+      }
+    }
+    return result;
+  }
+
+  function findDownIndeces(arr){
+    var result = [];
+    for(var i in arr){
+      if (arr[i] > 0 && arr[i] < 90){
+        result.push(i);
+      }
+    }
+    return result;
+  }
+
+  function multiplyArrays(arr1, arr2){
+    var result = [];
+    if (arr1.length != arr2.length){
+      console.log('Error. Arrays are not same size.');
+    }
+    for (var i in arr1){
+      result[i] = arr1[i]*arr2[i];
+    }
+    return result;
+  }
+
+  function specificIndeces(arr,indeces){
+    var result = [];
+    for (var i in indeces){
+      result.push(arr[indeces[i]]);
+    }
+    return result;
+  }
+
+  function sumArray(arr){
+    var sum = 0;
+    for (var i in arr){
+      sum += arr[i];
+    }
+    return sum;
+  }
+
+  function negateArray(arr){
+    for (var i in arr){
+      arr[i] = -arr[i];
+    }
+    return arr;
+  }
+
+  function FloatToPowerOfArray(float, arr){
+    var result = [];
+    for (var i in arr){
+      result.push(Math.pow(float,arr[i]));
+    }
+    return result;
+  }
+
+  function arrayExp(arr){
+    var result = [];
+    for (var i in arr){
+      result.push(Math.exp(arr[i]));
+    }
+    return result;
+  }
+
+  var area = {
+    walls : 2*height*(length+width),
+    ceiling : length*width,
+    floor : length*width
+  };
+  var cr = 5*height*(length+width)/(length*width); // cavity ratio
+  var crTable = [0,1,2,3,4,5,6,7,8,9,10];
+  var f23Table = [1.0,0.827,0.689,0.579,0.489,0.415,0.355,0.306,0.265,0.231,0.202];
+  var f23 = interp1(crTable,f23Table,cr,0);
+
+  var i_avg = average_2d(ies.intensities);
+  var zoneAngles;
+  if (parseFloat(ies.verticalAngles[0]) == 0){
+    if (parseFloat(ies.verticalAngles[ies.verticalAngles.length-1]) == 180){
+      zoneAngles = [5,15,25,35,45,55,65,75,85,95,105,115,125,135,145,155,165,175,185];
+    }else{ //90
+      zoneAngles = [5,15,25,35,45,55,65,75,85];
+    }
+  }else{ //90
+    zoneAngles = [95,105,115,125,135,145,155,165,175,185];
+  }
+
+  var i_z = interp1(ies.verticalAngles, i_avg, zoneAngles, 0);
+
+  var zc = [];
+  var halfZone = (zoneAngles[1]-zoneAngles[0])/2;
+  for (i in zoneAngles){
+    zc[i] = 2*Math.PI*(Math.cos((zoneAngles[i]-halfZone) * Math.PI/180)-Math.cos((zoneAngles[i]+halfZone) * Math.PI/180));
+  }
+
+  var qup = findUpIndeces(zoneAngles);
+  var qdn = findDownIndeces(zoneAngles);
+  var totalFlux = sumArray(multiplyArrays(zc,i_z))/fixtureEfficiency;
+  var etaU = sumArray(multiplyArrays(specificIndeces(zc,qup),specificIndeces(i_z,qup)))/totalFlux;
+  var etaD = sumArray(multiplyArrays(specificIndeces(zc,qdn),specificIndeces(i_z,qdn)))/totalFlux;
+  var kA = [0,0.041,0.070,0.100,0.136,0.190,0.315,0.640,2.10];
+  var kB = [0,0.98,1.05,1.12,1.16,1.25,1.25,1.25,0.80];
+  var km = arrayExp(multiplyArrays(negateArray(kA),FloatToPowerOfArray(cr,kB)));
+  var dm = sumArray(multiplyArrays(multiplyArrays(km,specificIndeces(zc,qdn)),specificIndeces(i_z,qdn)))/(etaD*totalFlux);
+
+  var c1 = (1-reflectance.walls) * (1-f23**2)/(2.5/cr*reflectance.walls*(1-f23**2)+f23*(1-reflectance.walls));
+  var c2 = (1-reflectance.ceiling) * (1+f23)/(1+reflectance.ceiling*f23);
+  var c3 = (1-reflectance.floor) * (1+f23)/(1+reflectance.floor*f23);
+  var c0 = c1 + c2 + c3;
+
+  var cu = (2.5*reflectance.walls*etaD*(1-dm)*c1*c3)/(cr*(1-reflectance.walls)*(1-reflectance.floor)*c0) + (reflectance.ceiling*etaU*c2*c3)/((1-reflectance.ceiling)*(1-reflectance.floor)*c0) + dm*etaD/(1-reflectance.floor)*(1-(reflectance.floor*c3*(c1+c2))/(c0*(1-reflectance.floor)));
+  var wec = 2.5/cr*(reflectance.walls*(1-dm)*etaD/(1-reflectance.walls)*(1-(2.5*reflectance.walls*c1*(c2+c3)/(cr*(1-reflectance.walls)*c0))) + reflectance.walls*reflectance.ceiling*etaU*c1*c2/((1-reflectance.walls)*(1-reflectance.ceiling)*c0) + reflectance.walls*reflectance.floor*dm*etaD*c1*c3/((1-reflectance.walls)*(1-reflectance.floor)*c0));
+  var cec = 2.5*reflectance.walls*reflectance.ceiling*(1-dm)*etaD*c1*c2/(cr*(1-reflectance.walls)*(1-reflectance.ceiling)*c0) + reflectance.ceiling*etaU/(1-reflectance.ceiling)*(1-reflectance.ceiling*c2*(c1+c3)/((1-reflectance.ceiling)*c0)) + reflectance.ceiling*reflectance.floor*dm*etaD*c2*c3/((1-reflectance.ceiling)*(1-reflectance.floor)*c0);
 }
 
 function createSPD(){
@@ -100,7 +303,7 @@ function createSPD(){
 
 function createCandela(){
   function getVAIndex(){
-    var angles = ies.angles[0];
+    var angles = ies.intensities[0];
     var max = parseFloat(angles[0]);
     var maxIndex = 0;
 
@@ -143,10 +346,10 @@ function createCandela(){
   function addPoint(angle,index,set,i){
     if (angle % 10 == 0){
       data.labels.push(va[i]);
-      data.datasets[0].data[index] = (ies.angles[set][i] * ies.multiplier).toFixed(2);
+      data.datasets[0].data[index] = (ies.intensities[set][i]).toFixed(2);
     }else{
       data.labels.push('');
-      data.datasets[0].data[index] = (ies.angles[set][i] * ies.multiplier).toFixed(2);
+      data.datasets[0].data[index] = (ies.intensities[set][i]).toFixed(2);
     }
   }
 
@@ -293,18 +496,18 @@ function createCandela(){
       set = 0;
       for (i = 0; i < ha.length; i++){
         indexes = findIndexOf(ha[i]);
-        data.datasets[1].data[indexes[0]] = ((ies.angles[set][vaIndex]) * ies.multiplier).toFixed(2);
+        data.datasets[1].data[indexes[0]] = ((ies.intensities[set][vaIndex])).toFixed(2);
         if(indexes.length > 1){
-          data.datasets[1].data[indexes[1]] = ((ies.angles[set][vaIndex]) * ies.multiplier).toFixed(2);
+          data.datasets[1].data[indexes[1]] = ((ies.intensities[set][vaIndex])).toFixed(2);
         }
         set++;
       }
       set = 0;
       for (i = 0; i < ha.length; i++){
         indexes = findIndexOf(parseFloat(ha[i]) + 90);
-        data.datasets[1].data[indexes[0]] = ((ies.angles[set][vaIndex]) * ies.multiplier).toFixed(2);
+        data.datasets[1].data[indexes[0]] = ((ies.intensities[set][vaIndex])).toFixed(2);
         if(indexes.length > 1){
-          data.datasets[1].data[indexes[1]] = ((ies.angles[set][vaIndex]) * ies.multiplier).toFixed(2);
+          data.datasets[1].data[indexes[1]] = ((ies.intensities[set][vaIndex])).toFixed(2);
         }
         set++;
       }
@@ -327,7 +530,7 @@ function createCandela(){
             adjustedHA = 450 - parseFloat(ha[i]);
             index = findIndexOf(adjustedHA)[0];
           }
-          data.datasets[1].data[index] = ((ies.angles[set][vaIndex]) * ies.multiplier).toFixed(2);
+          data.datasets[1].data[index] = ((ies.intensities[set][vaIndex])).toFixed(2);
           set++;
         }
         else{
@@ -342,7 +545,7 @@ function createCandela(){
 
             }
           }
-          data.datasets[1].data[index] = ((ies.angles[set][vaIndex]) * ies.multiplier).toFixed(2);
+          data.datasets[1].data[index] = ((ies.intensities[set][vaIndex])).toFixed(2);
           set++;
         }
       }
@@ -415,7 +618,7 @@ function iesParse(){
   ies.horizontalAngles = raw.slice(0,ies.numHorizontalAngles);
   raw = raw.slice(ies.numHorizontalAngles);
   for (i = 0; i < ies.numHorizontalAngles; i++){
-    ies.angles[i] = raw.slice(0,ies.numVerticalAngles);
+    ies.intensities[i] = raw.slice(0,ies.numVerticalAngles);
     raw = raw.slice(ies.numVerticalAngles);
   }
   delete ies.raw;
@@ -429,6 +632,13 @@ function iesParse(){
       alert('Your fixture is photometric type A. You must use type C.');
     }
     return;
+  }
+
+  for (var i in ies.intensities){
+    for (var j in ies.intensities[i]){
+      // ies.intensities[i][j] = ies.intensities[i][j] * ies.multiplier;
+      ies.intensities[i][j] = ies.intensities[i][j] * 1;
+    }
   }
 
   console.log(ies);

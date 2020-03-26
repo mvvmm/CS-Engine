@@ -1,6 +1,6 @@
 % Script for calculating CU, WEC and CEC for an IES file
 
-pathFileName = 'cosineDownLight.ies'; % 'ConfRoomFixture.ies', 'cosineDownLight.ies'
+pathFileName = 'troffer.ies'; % 'ConfRoomFixture.ies', 'cosineDownLight.ies'
 
 Length = 6.60; % meters
 Width = 4.84;
@@ -16,14 +16,14 @@ rho3 = 0.20;  % Floor
 numFixtures = 4; % Number of lighting fixtures
 fixtureEfficiency = 1.0;
 
-CR = 5*Height*(Length+Width)/(Length*Width) % Cavity ratio (also denoted as m)
+CR = 5*Height*(Length+Width)/(Length*Width); % Cavity ratio (also denoted as m)
 CRTable = 0:10;
 f23Table = [1.0,0.827,0.689,0.579,0.489,0.415,0.355,0.306,0.265,0.231,0.202];
 f23 = interp1(CRTable,f23Table,CR,'linear',nan);
 
 [I,thetas,phis] = readIESFunction(pathFileName);
 Iavg = mean(I,2); % Assume rotationally symmetric distribution. OK for calculating flux on walls, floor, ceiling.
-zoneAngles = (5:10:175);
+zoneAngles = (5:10:85);
 Iz = interp1(thetas,Iavg,zoneAngles,'linear',nan);
 ZC = zeros(size(zoneAngles));
 halfZone = (zoneAngles(2)-zoneAngles(1))/2;
